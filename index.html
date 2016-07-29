@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Capture Photo</title>
+    <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1"/>
+    <script type="text/javascript" charset="utf-8" src="cordova.js"></script>
+	<script type="text/javascript" charset="utf-8" src="js/index.js"></script>
+	<script type="text/javascript" charset="utf-8" src="js/progressbar.min.js"></script>
+	<script src="http://192.168.178.20:8080/target/target-script-min.js#anonymous"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+	<style type="text/css">
+		body {
+			margin: 0;
+			height: 100%; width: 100%;
+			text-align: center;
+			padding-top: 10%;
+		}
+		#link {
+			padding-top: 10%;
+			display: none;
+		}
+		#circle {
+			width: 80%;
+			position: absolute;
+			top: 20%;
+			left: 10%;
+			z-index: 0;
+		}
+		.progresstext {
+			font-size: 18pt;
+			height: 100%;
+			width: 100%;
+			top: 0%;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			position: absolute;
+
+		}
+	</style>
+    <script type="text/javascript" charset="utf-8">
+	var pictureSource;   // picture source
+	var destinationType; // sets the format of returned value
+	 
+	document.addEventListener("deviceready", onDeviceReady, false);
+	 
+	function onDeviceReady() {
+	    pictureSource = navigator.camera.PictureSourceType;
+	    destinationType = navigator.camera.DestinationType;
+	    capturePhoto();
+	}
+	 
+	function clearCache() {
+	    navigator.camera.cleanup();
+	}
+	 
+	var retries = 0;
+	function onCapturePhoto(fileURI) {
+		var circle = new ProgressBar.Circle("#circle", {
+			color: '#FCB03C',
+			text: {
+				value: "Waiting for photo...",
+				className: 'progresstext',
+				style: {
+					color: '#00000',
+					"font-size": "18pt"
+				}
+			}
+		});
+	    var win = function (r) {
+	        clearCache();
+	        retries = 0;
+	        console.log("http://sharepic.moe/" + r.response);
+	        circle.setText("100%");
+	        $("#link").html("http://sharepic.moe/" + r.response).fadeIn("slow", function() {
+	        	console.log("complete");
+	        })
+	       
+	    }
+	 
+	    var fail = function (error) {
+	        if (retries == 0) {
+	            retries ++
+	            setTimeout(function() {
+	                onCapturePhoto(fileURI)
+	            }, 1000)
+	        } else {
+	            retries = 0;
+	            clearCache();
+	            alert('Ups. Something wrong happens!');
+	        }
+	    }
+	 
+	    var options = new FileUploadOptions();
+	    options.fileKey = "file";
+	    options.fileName = fileURI.substr(fileURI.lastIndexOf('/') + 1);
+	    options.mimeType = "image/jpeg";
+	    options.params = {}; // if we need to send parameters to the server request
+	    var ft = new FileTransfer();
+	    ft.upload(fileURI, encodeURI("https://sharepic.moe/upload.php"), win, fail, options);
+	    ft.onprogress = function(progressEvent) {
+	    	if (progressEvent.lengthComputable) {
+	    		circle.animate(progressEvent.loaded / progressEvent.total);
+	    		circle.setText(Math.floor((progressEvent.loaded / progressEvent.total) * 100) + "%")
+	    	} else {
+	    		
+	    	}
+	    }
+	}
+	 
+	function capturePhoto() {
+	    navigator.camera.getPicture(onCapturePhoto, onFail, {
+	        quality: 100,
+	        destinationType: destinationType.FILE_URI
+	    });
+	}
+	 
+	function onFail(message) {
+	    alert('Failed because: ' + message);
+	}
+
+    </script>
+  </head>
+  <body onload="">
+   	<div id="circle" style="position: absolute; top: 10%;">
+   		
+   	</div>
+   	<div id="link">lol u should not see this</div>
+  </body>
+</html>
