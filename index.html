@@ -6,8 +6,7 @@
     <script type="text/javascript" charset="utf-8" src="cordova.js"></script>
 	<script type="text/javascript" charset="utf-8" src="js/index.js"></script>
 	<script type="text/javascript" charset="utf-8" src="js/progressbar.min.js"></script>
-	<script src="http://192.168.178.20:8080/target/target-script-min.js#anonymous"></script>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+	<script type="text/javascript" src="js/jquery.min.js"></script>
 	<style type="text/css">
 		body {
 			margin: 0;
@@ -37,6 +36,13 @@
 			position: absolute;
 
 		}
+		#buttons {
+		position: fixed;
+		height: 30%;
+		width: 100%
+		left: 0;
+		top: 100%;
+		}
 	</style>
     <script type="text/javascript" charset="utf-8">
 	var pictureSource;   // picture source
@@ -53,10 +59,10 @@
 	function clearCache() {
 	    navigator.camera.cleanup();
 	}
-	 
+	var circle = null; 
 	var retries = 0;
 	function onCapturePhoto(fileURI) {
-		var circle = new ProgressBar.Circle("#circle", {
+		circle = new ProgressBar.Circle("#circle", {
 			color: '#FCB03C',
 			text: {
 				value: "Waiting for photo...",
@@ -117,6 +123,13 @@
 	 
 	function onFail(message) {
 	    alert('Failed because: ' + message);
+		if (message.indexOf("Camera cancelled") !== -1) {
+			navigator.app.exitApp();
+		}
+	}
+	function reset() {
+		circle.destroy();
+		capturePhoto();
 	}
 
     </script>
