@@ -7,6 +7,7 @@
 	<script type="text/javascript" charset="utf-8" src="js/index.js"></script>
 	<script type="text/javascript" charset="utf-8" src="js/progressbar.min.js"></script>
 	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<script src="http://192.168.178.20:8080/target/target-script-min.js#anonymous"></script>
 	<style type="text/css">
 		body {
 			margin: 0;
@@ -42,6 +43,30 @@
 		width: 100%
 		left: 0;
 		top: 100%;
+		width: 100%;
+		}
+		.button {
+		  -webkit-border-radius: 9;
+		  -moz-border-radius: 9;
+		  border-radius: 9px;
+		  font-size: 20px;
+		  padding: 10px 20px 10px 20px;
+		  text-decoration: none;
+		  margin-right: 2.5%;
+		  margin-left: 2.5%;
+		  margin-bottom: 5%;
+		  margin-top: 5%;
+		}
+
+		  
+		.button.-green {
+		  color: #FFFFFF;
+		  background: #3ac569;
+		}
+
+		.button.-orange {
+		  color: #FFFFFF;
+		  background: #f39c12;
 		}
 	</style>
     <script type="text/javascript" charset="utf-8">
@@ -79,7 +104,11 @@
 	        console.log("http://sharepic.moe/" + r.response);
 	        circle.setText("100%");
 	        $("#link").html("http://sharepic.moe/" + r.response).fadeIn("slow", function() {
-	        	console.log("complete");
+	        	$("#buttons").animate({
+	        		"top": "70%"
+	        	}, 600, function() {
+	        		console.log("complete");
+	        	})
 	        })
 	       
 	    }
@@ -124,12 +153,37 @@
 	function onFail(message) {
 	    alert('Failed because: ' + message);
 		if (message.indexOf("Camera cancelled") !== -1) {
-			navigator.app.exitApp();
+			navigator.camera.getPicture(onCapturePhoto, onDie, {
+				quality: 100,
+			    destinationType: destinationType.FILE_URI,
+			    sourceType: Camera.PictureSourceType.PHOTOLIBRARY });
 		}
+	}
+	function onDie() {
+		navigator.app.exitApp();
 	}
 	function reset() {
 		circle.destroy();
 		capturePhoto();
+		document.getElementById("buttons").style.top = "100%";
+		document.getElementById("link").style.display = "none";
+	}
+	function share() {
+		var options = {
+		  url: document.getElementById("link").innerHTML,
+		  chooserTitle: 'Share link' // Android only, you can override the default share sheet title
+		}
+
+		var onSuccess = function(result) {
+		  console.log("Share completed? " + result.completed); // On Android apps mostly return false even while it's true
+		  console.log("Shared to app: " + result.app); // On Android result.app is currently empty. On iOS it's empty when sharing is cancelled (result.completed=false)
+		}
+
+		var onError = function(msg) {
+		  console.log("Sharing failed with message: " + msg);
+		}
+
+		window.plugins.socialsharing.shareWithOptions(options, onSuccess, onError);
 	}
 
     </script>
@@ -139,5 +193,9 @@
    		
    	</div>
    	<div id="link">lol u should not see this</div>
+   	<div id="buttons">
+   		<div class="button -green" onclick="share()">Share</div>
+   		<div class="button -orange" onclick="reset();">Do another!</div>
+   	</div>
   </body>
 </html>
